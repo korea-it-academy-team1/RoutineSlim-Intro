@@ -1,0 +1,488 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>루틴슬림</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="루틴슬림은 흩어진 구독을 한 화면에 모으고, 결제일을 미리 알려주고, 안 쓰는 구독을 찾아주는 고정비 다이어트 앱입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800;900&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 앱 화면을 주인공으로 두고, 텍스트와 폰 목업이 좌우로 번갈아 놓이는 제품 소개 흐름. 남색 밴드 하나가 '정리' 기능을 강조한다. */
+:root{
+  --bg:#F4F5F9; --surface:#FFFFFF; --ink:#141827; --muted:#5E6478; --line:#E2E4EE;
+  --accent:#5B5BD6; --accent-ink:#4646C2; --accent-soft:#ECECFC;
+  --night:#0F1626; --night-ink:#E9ECF5; --night-muted:#9BA3BA; --mint:#3DDC97;
+  --warn-soft:#FFECEC; --warn:#D23F45;
+  --bezel:#171B27;
+  --f-display:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --wrap:1120px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C0F17; --surface:#151926; --ink:#EDEFF7; --muted:#9AA0B5; --line:#252A3A;
+  --accent:#8C8CF2; --accent-ink:#A5A5F7; --accent-soft:#1F2147;
+  --night:#060911; --night-ink:#E9ECF5; --night-muted:#8F97AE; --mint:#3DDC97;
+  --warn-soft:#3A1A1D; --warn:#FF8A8F; --bezel:#2A3042; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C0F17; --surface:#151926; --ink:#EDEFF7; --muted:#9AA0B5; --line:#252A3A;
+  --accent:#8C8CF2; --accent-ink:#A5A5F7; --accent-soft:#1F2147;
+  --night:#060911; --night-ink:#E9ECF5; --night-muted:#8F97AE; --mint:#3DDC97;
+  --warn-soft:#3A1A1D; --warn:#FF8A8F; --bezel:#2A3042; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;word-break:keep-all}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.035em}
+p{margin:0}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--accent-ink);text-transform:uppercase}
+
+/* header */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-bottom-color:var(--line)}
+.top .wrap{display:flex;align-items:center;gap:24px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.03em}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:var(--f-num);font-size:15px;font-weight:600}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{text-decoration:none;font-size:14.5px;font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px}
+.nav a:hover{color:var(--ink);background:var(--accent-soft)}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;font-size:15px;border-radius:12px;padding:12px 18px;border:0;cursor:pointer;font-family:inherit;transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-ink)}
+.top .btn{padding:9px 14px;font-size:14px}
+@media (max-width:820px){.nav{display:none}.top .btn{margin-left:auto}}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero .wrap{display:grid;grid-template-columns:1.08fr .92fr;gap:48px;align-items:center}
+.hero-copy{min-width:0;display:flex;flex-direction:column;gap:22px}
+.pill{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px 6px 8px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.pill b{background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:2px 9px;font-weight:600;font-size:12.5px}
+.hero h1{font-size:clamp(36px,5.6vw,62px);line-height:1.12;font-weight:900}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:clamp(16px,1.6vw,18.5px);color:var(--muted);max-width:34em}
+.meter{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 22px;display:flex;flex-direction:column;gap:10px;max-width:460px}
+.meter-head{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--bg);border-radius:10px;padding:3px;border:1px solid var(--line)}
+.seg button{font:inherit;font-size:13px;font-weight:600;border:0;background:transparent;color:var(--muted);padding:5px 12px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 3px rgb(0 0 0 / .08)}
+.meter-num{font-family:var(--f-num);font-weight:600;font-size:clamp(34px,4.6vw,46px);line-height:1.1;color:var(--accent);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.meter-num small{font-family:var(--f-body);font-size:.5em;font-weight:700;margin-left:4px;color:var(--ink)}
+.meter-foot{font-size:13.5px;color:var(--muted)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.store{display:inline-flex;align-items:center;gap:12px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 18px 10px 14px;text-decoration:none}
+.store svg{width:24px;height:24px}
+.store span{display:flex;flex-direction:column;line-height:1.2}
+.store small{font-size:11.5px;opacity:.75}
+.store strong{font-size:16px;font-weight:700}
+.note{font-size:13.5px;color:var(--muted)}
+
+.hero-visual{position:relative;display:flex;justify-content:center;min-width:0;padding-block:12px}
+.phone{position:relative;width:min(300px,78vw);aspect-ratio:437/945;border-radius:46px;padding:10px;background:var(--bezel);box-shadow:0 40px 80px -30px rgb(20 24 60 / .45),0 0 0 1px rgb(255 255 255 / .04) inset;max-width:100%}
+.phone img{width:100%;height:100%;object-fit:cover;border-radius:37px;background:#F4F5F9}
+.toast{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 18px 40px -18px rgb(20 24 60 / .35);font-size:13.5px;line-height:1.4;max-width:250px}
+.toast .ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-family:var(--f-display);font-size:18px}
+.toast b{display:block;font-size:14px}
+.toast span{color:var(--muted)}
+.t1{left:-4%;top:44%;animation:float 6s ease-in-out infinite}
+.t2{right:-4%;bottom:14%;animation:float 6s ease-in-out -3s infinite}
+.ic-n{background:#141414;color:#E50914}
+.ic-cut{background:var(--accent-soft);color:var(--accent-ink)}
+@keyframes float{50%{transform:translateY(-8px)}}
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;gap:40px}
+  .t1{left:0}.t2{right:0}
+}
+@media (max-width:480px){.toast{max-width:200px;font-size:12.5px}.t1{top:6%}.t2{bottom:6%}}
+
+/* fact strip */
+.facts{padding-block:20px 8px}
+.facts ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.facts li{background:var(--surface);padding:20px 22px;display:flex;flex-direction:column;gap:2px}
+.facts strong{font-family:var(--f-display);font-size:17px;font-weight:800;letter-spacing:-.02em}
+.facts span{font-size:14px;color:var(--muted)}
+@media (max-width:720px){.facts ul{grid-template-columns:1fr}}
+
+/* sections */
+section{padding-block:88px}
+.sec-head{display:flex;flex-direction:column;gap:14px;max-width:640px;margin-bottom:48px}
+.sec-head h2{font-size:clamp(28px,3.8vw,42px);line-height:1.22;font-weight:800}
+.sec-head p{color:var(--muted);font-size:17px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:26px 24px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden;min-width:0}
+.step-no{font-family:var(--f-num);font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:3px 9px;align-self:flex-start}
+.step h3{font-size:22px;font-weight:800}
+.step p{color:var(--muted);font-size:15px}
+.step .crop{margin-top:auto;padding-top:18px;display:flex;justify-content:center}
+.step .crop .phone{width:min(230px,100%);border-radius:36px 36px 0 0;padding:8px 8px 0;aspect-ratio:437/620;overflow:hidden;box-shadow:none}
+.step .crop .phone img{border-radius:29px 29px 0 0;height:auto;object-fit:cover;object-position:top}
+@media (max-width:900px){.steps{grid-template-columns:1fr;max-width:480px;margin-inline:auto}}
+
+/* feature rows */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.row + .row{margin-top:96px}
+.row.flip .row-copy{order:2}
+.row-copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.row-copy h3{font-size:clamp(26px,3.2vw,36px);line-height:1.25;font-weight:800}
+.row-copy > p{color:var(--muted);font-size:17px;max-width:30em}
+.checks{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-direction:column;gap:10px}
+.checks li{display:flex;gap:10px;align-items:flex-start;font-size:15.5px}
+.checks svg{flex:none;margin-top:4px;color:var(--accent)}
+.row-visual{display:flex;justify-content:center;gap:20px;min-width:0}
+.row-visual .phone{width:min(270px,70vw)}
+.row-visual.duo .phone{width:min(240px,42vw)}
+.row-visual.duo .phone:last-child{margin-top:56px}
+@media (max-width:900px){
+  .row{grid-template-columns:1fr;gap:36px}
+  .row.flip .row-copy{order:0}
+  .row + .row{margin-top:72px}
+}
+@media (max-width:480px){.row-visual.duo{gap:10px}.row-visual.duo .phone{border-radius:30px;padding:6px}.row-visual.duo .phone img{border-radius:25px}}
+
+/* night band */
+.night{background:var(--night);color:var(--night-ink)}
+.night .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.night .eyebrow{color:var(--mint)}
+.night h2{font-size:clamp(28px,3.8vw,44px);line-height:1.22;font-weight:800}
+.night p{color:var(--night-muted);font-size:17px}
+.night-copy{display:flex;flex-direction:column;gap:20px;min-width:0}
+.ledger{border:1px solid rgb(255 255 255 / .1);border-radius:20px;overflow:hidden}
+.ledger div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 18px;font-size:15px}
+.ledger div + div{border-top:1px solid rgb(255 255 255 / .08)}
+.ledger .num{font-size:16px;color:var(--night-ink)}
+.ledger .total{background:rgb(61 220 151 / .08)}
+.ledger .total span:first-child{color:var(--mint);font-weight:600}
+.ledger .total .num{color:var(--mint);font-size:20px}
+.night .phone{width:min(290px,72vw);margin-inline:auto;box-shadow:0 40px 90px -30px rgb(0 0 0 / .8),0 0 0 1px rgb(255 255 255 / .08)}
+@media (max-width:900px){.night .wrap{grid-template-columns:1fr;gap:44px}}
+
+/* gallery */
+.gallery{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 24px;scrollbar-width:thin}
+.gallery figure{margin:0;flex:none;width:220px;scroll-snap-align:start;display:flex;flex-direction:column;gap:12px}
+.gallery .phone{width:100%;border-radius:34px;padding:7px;box-shadow:0 20px 40px -24px rgb(20 24 60 / .4)}
+.gallery .phone img{border-radius:28px}
+.gallery figcaption{font-size:14px;font-weight:600;padding-left:4px}
+.gallery figcaption span{display:block;font-weight:400;color:var(--muted);font-size:13px}
+
+/* faq */
+.faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px}
+.faq .sec-head{margin:0}
+.qa{display:flex;flex-direction:column;border-top:1px solid var(--line);min-width:0}
+details{border-bottom:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 2px;font-weight:600;font-size:17px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--f-num);font-size:22px;color:var(--accent);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 2px 22px;color:var(--muted);font-size:15.5px;max-width:40em}
+@media (max-width:900px){.faq{grid-template-columns:1fr;gap:28px}}
+
+/* closing */
+.closing{padding-block:40px 96px}
+.closing-box{background:var(--accent);color:#fff;border-radius:32px;padding:56px clamp(24px,5vw,64px);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;position:relative;overflow:hidden}
+.closing-box::after{content:"₩";position:absolute;right:-20px;bottom:-90px;font-family:var(--f-display);font-weight:900;font-size:320px;line-height:1;color:rgb(255 255 255 / .08);pointer-events:none}
+.closing h2{font-size:clamp(28px,3.6vw,40px);line-height:1.25;font-weight:900}
+.closing p{opacity:.85;margin-top:12px;font-size:17px}
+.closing .store{background:#fff;color:#141827;position:relative;z-index:1}
+@media (max-width:760px){.closing-box{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--line);padding-block:36px 48px;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center}
+footer nav{display:flex;gap:20px;flex-wrap:wrap}
+footer a{text-decoration:none}
+footer a:hover{color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="루틴슬림 처음으로"><span class="mark">₩</span>루틴슬림</a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#how">사용법</a>
+      <a href="#features">기능</a>
+      <a href="#cleanup">구독 정리</a>
+      <a href="#screens">화면</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+    <a class="btn btn-primary" href="#download">출시 소식 보기</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="pill"><b>Android</b> 비공개 테스트 준비 중</span>
+        <h1 id="hero-title">매달 새는 구독료,<br><em>한 화면</em>에서 줄이세요</h1>
+        <p class="lede">넷플릭스, 스포티파이, iCloud+까지. 흩어진 구독을 모아 결제일 전에 알려주고, 거의 안 쓰는 구독은 먼저 찾아드려요. 카드나 은행 연결은 필요 없어요.</p>
+
+        <div class="meter" aria-live="polite">
+          <div class="meter-head">
+            <span>구독 6개를 쓰면</span>
+            <div class="seg" role="group" aria-label="기간 선택">
+              <button type="button" id="seg-month" aria-pressed="true" data-period="month">한 달</button>
+              <button type="button" id="seg-year" aria-pressed="false" data-period="year">1년</button>
+            </div>
+          </div>
+          <div class="meter-num"><span id="meter-value">61,790</span><small>원</small></div>
+          <p class="meter-foot" id="meter-foot">앱 예시 화면 기준 · 넷플릭스, 디즈니+, 유튜브 프리미엄, 스포티파이, iCloud+, 쿠팡 와우</p>
+        </div>
+
+        <div class="cta-row" id="download">
+          <a class="store" href="#faq" aria-label="Google Play 출시 예정, 자세히 보기">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.7-.6-1.2V3.5c0-.5.2-1 .6-1.2Z"/><path fill="#FBBC04" d="m17 8.5-3.6 3.5L17 15.5l3.9-2.2c1.1-.6 1.1-2.1 0-2.7L17 8.5Z"/><path fill="#EA4335" d="M13.4 12 3.6 21.7c.4.2.9.2 1.4-.1L17 15.5 13.4 12Z"/><path fill="#4285F4" d="M3.6 2.3c.5-.3 1-.3 1.4-.1L17 8.5 13.4 12 3.6 2.3Z"/></svg>
+            <span><small>곧 만나요</small><strong>Google Play</strong></span>
+          </a>
+          <span class="note">Android 먼저 출시하고, iOS는 이후에 준비해요.</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone"><img src="assets/screens/home.jpg" alt="루틴슬림 홈 화면. 10월 총 구독료 61,790원, 다가오는 결제로 넷플릭스와 iCloud+가 D-1로 표시됨" width="437" height="945"></div>
+        <div class="toast t1" aria-hidden="true">
+          <span class="ic ic-n">N</span>
+          <div><b>넷플릭스 내일 결제</b><span>17,000원 · 10월 12일</span></div>
+        </div>
+        <div class="toast t2" aria-hidden="true">
+          <span class="ic ic-cut">↓</span>
+          <div><b>30일 동안 접속 없음</b><span>디즈니+ 9,900원 정리 후보</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="facts">
+    <div class="wrap">
+      <ul>
+        <li><strong>카드·은행 연결 없이</strong><span>직접 입력하거나 영수증을 스캔해요</span></li>
+        <li><strong>결제일 D-1 알림</strong><span>잊고 있던 결제를 하루 전에 알려줘요</span></li>
+        <li><strong>나에게만 보이는 정보</strong><span>등록한 구독은 내 계정에만 저장돼요</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <section id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">사용법</span>
+        <h2 id="how-title">세 단계면 이번 달 고정비가 보여요</h2>
+        <p>등록은 한 번이면 충분해요. 그다음부터는 루틴슬림이 결제일과 합계를 챙겨요.</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <span class="step-no">STEP 1</span>
+          <h3>구독 추가</h3>
+          <p>결제 영수증이나 구독 화면을 올리면 서비스와 금액을 읽어요. 직접 입력해도 돼요.</p>
+          <div class="crop"><div class="phone"><img src="assets/screens/add.jpg" alt="구독 추가 방법 선택 화면. 영수증/캡처 스캔과 직접 입력 중 선택" loading="lazy" width="437" height="945"></div></div>
+        </article>
+        <article class="step">
+          <span class="step-no">STEP 2</span>
+          <h3>결제일 알림</h3>
+          <p>캘린더에 결제 예정일이 점으로 찍히고, 결제 하루 전에 알림이 와요.</p>
+          <div class="crop"><div class="phone"><img src="assets/screens/calendar.jpg" alt="2026년 10월 결제 캘린더. 이번 달 결제 예정 61,790원" loading="lazy" width="437" height="945"></div></div>
+        </article>
+        <article class="step">
+          <span class="step-no">STEP 3</span>
+          <h3>한눈에 합계</h3>
+          <p>카테고리별로 어디에 얼마를 쓰는지 보여줘요. OTT가 67.6%라면 바로 보이죠.</p>
+          <div class="crop"><div class="phone"><img src="assets/screens/stats.jpg" alt="통계 화면. 카테고리별 지출 비중 도넛 차트, OTT 67.6%" loading="lazy" width="437" height="945"></div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" aria-labelledby="features-title" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">기능</span>
+        <h2 id="features-title">귀찮은 입력은 줄이고, 놓치는 결제는 없게</h2>
+      </div>
+
+      <div class="row">
+        <div class="row-copy">
+          <h3>영수증 한 장이면<br>등록이 끝나요</h3>
+          <p>결제 메일이나 앱 결제 화면을 캡처해서 올리세요. 서비스 이름, 결제 금액, 결제 주기, 다음 결제일을 채워 드려요.</p>
+          <ul class="checks">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>읽은 내용은 저장 전에 확인하고 고칠 수 있어요</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>이미 등록한 구독이면 결제 정보만 업데이트해요</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>인기 서비스는 로고와 요금이 미리 들어 있어요</li>
+          </ul>
+        </div>
+        <div class="row-visual duo">
+          <div class="phone"><img src="assets/screens/add.jpg" alt="구독 추가 방법 선택 화면" loading="lazy" width="437" height="945"></div>
+          <div class="phone"><img src="assets/screens/scan.jpg" alt="스캔 결과 확인 화면. 넷플릭스, 17,000원, 매월, 다음 결제일 2026. 10. 12" loading="lazy" width="437" height="945"></div>
+        </div>
+      </div>
+
+      <div class="row flip">
+        <div class="row-copy">
+          <h3>이번 달 무엇이<br>언제 빠져나가는지</h3>
+          <p>홈에서는 이번 달 총 구독료와 7일 안에 결제될 구독을, 캘린더에서는 날짜별 결제 금액을 확인해요.</p>
+          <ul class="checks">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>결제 3일 전, 하루 전처럼 알림 시점을 고를 수 있어요</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>지난달과 비교해 늘었는지 줄었는지 알려줘요</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>월별 추이와 카테고리 비중을 차트로 봐요</li>
+          </ul>
+        </div>
+        <div class="row-visual duo">
+          <div class="phone"><img src="assets/screens/home.jpg" alt="홈 화면" loading="lazy" width="437" height="945"></div>
+          <div class="phone"><img src="assets/screens/calendar.jpg" alt="결제 캘린더 화면" loading="lazy" width="437" height="945"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-copy">
+          <h3>혼자 내기 아까운 구독은<br>파티원과 나눠요</h3>
+          <p>커뮤니티에서 같은 서비스를 함께 쓸 파티원을 모집하고, 구독 후기와 절약 팁을 나눠요. 넷플릭스 17,000원도 4명이면 한 명당 4,250원이에요.</p>
+          <ul class="checks">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>파티원 모집, 후기, 자유 게시판</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>1인당 금액과 참여 인원이 바로 보여요</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>댓글과 좋아요로 이야기를 이어가요</li>
+          </ul>
+        </div>
+        <div class="row-visual">
+          <div class="phone"><img src="assets/screens/community.jpg" alt="커뮤니티 파티원 모집 화면. 넷플릭스 2/4명 참여 4,250원/월·인" loading="lazy" width="437" height="945"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="night" id="cleanup" aria-labelledby="cleanup-title">
+    <div class="wrap">
+      <div class="night-copy">
+        <span class="eyebrow">구독 정리</span>
+        <h2 id="cleanup-title">안 쓰는데 매달 나가는 돈, 먼저 찾아드려요</h2>
+        <p>한 달 접속 일수를 기준으로 거의 쓰지 않은 구독을 골라내요. 해지할지, 더 싼 요금제로 바꿀지, 파티원과 나눌지 정하면 정리 전후 금액을 비교해 보여드려요.</p>
+        <div class="ledger" role="table" aria-label="정리 후보 예시">
+          <div role="row"><span role="cell">디즈니+ · 30일 동안 접속 없음</span><span class="num" role="cell">9,900원</span></div>
+          <div role="row"><span role="cell">넷플릭스 · 30일 중 2일 접속</span><span class="num" role="cell">17,000원</span></div>
+          <div role="row"><span role="cell">쿠팡 와우 · 월 4일 이하 사용</span><span class="num" role="cell">7,890원</span></div>
+          <div role="row" class="total"><span role="cell">정리하면 1년에</span><span class="num" role="cell">417,480원</span></div>
+        </div>
+      </div>
+      <div class="phone"><img src="assets/screens/cleanup.jpg" alt="사용량 점검 화면. 3개 구독을 거의 안 썼어요, 매달 34,790원이 나가고 있어요" loading="lazy" width="437" height="945"></div>
+    </div>
+  </section>
+
+  <section id="screens" aria-labelledby="screens-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">화면 둘러보기</span>
+        <h2 id="screens-title">앱 화면 미리 보기</h2>
+        <p>옆으로 넘겨서 주요 화면을 확인해 보세요.</p>
+      </div>
+      <div class="gallery" tabindex="0" aria-label="앱 화면 목록, 옆으로 스크롤">
+        <figure><div class="phone"><img src="assets/screens/home.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>구독 목록<span>이번 달 총 구독료와 다가오는 결제</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/calendar.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>캘린더<span>날짜별 결제 예정일</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/stats.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>통계<span>카테고리별 지출 비중</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/add.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>구독 추가<span>스캔 또는 직접 입력</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/scan.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>스캔 결과<span>읽은 정보 확인하고 저장</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/cleanup.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>사용량 점검<span>거의 안 쓴 구독 찾기</span></figcaption></figure>
+        <figure><div class="phone"><img src="assets/screens/community.jpg" alt="" loading="lazy" width="437" height="945"></div><figcaption>커뮤니티<span>파티원 모집과 후기</span></figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" aria-labelledby="faq-title" style="padding-top:24px">
+    <div class="wrap faq">
+      <div class="sec-head">
+        <span class="eyebrow">자주 묻는 질문</span>
+        <h2 id="faq-title">궁금한 점을 모았어요</h2>
+      </div>
+      <div class="qa">
+        <details open>
+          <summary>카드나 은행 계좌를 연결해야 하나요?</summary>
+          <p>아니요. 루틴슬림은 금융 계정에 접근하지 않아요. 구독은 직접 입력하거나 결제 영수증·캡처를 올려서 등록해요. 인기 서비스는 이름, 로고, 요금이 미리 들어 있어 몇 번만 누르면 돼요.</p>
+        </details>
+        <details>
+          <summary>언제, 어디서 받을 수 있나요?</summary>
+          <p>Android 앱으로 먼저 출시해요. 지금은 Google Play 비공개 테스트를 준비하고 있고, 테스트가 끝나면 정식으로 공개할 예정이에요.</p>
+        </details>
+        <details>
+          <summary>아이폰에서도 쓸 수 있나요?</summary>
+          <p>iOS 버전은 Android 출시 이후에 검토하고 있어요.</p>
+        </details>
+        <details>
+          <summary>제 구독 정보는 누가 볼 수 있나요?</summary>
+          <p>등록한 정보는 로그인한 내 계정에만 저장되고, 나에게만 보여요. 커뮤니티에 직접 올린 글만 다른 사람에게 공개돼요.</p>
+        </details>
+        <details>
+          <summary>결제일 알림은 언제 오나요?</summary>
+          <p>기본은 결제 하루 전이에요. 3일 전처럼 원하는 시점으로 바꿀 수 있어요.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <div class="closing">
+    <div class="wrap">
+      <div class="closing-box">
+        <div>
+          <h2>이번 달 고정비부터<br>가볍게 시작해요</h2>
+          <p>구독 6개, 한 달 61,790원. 어디서 줄일 수 있는지 루틴슬림이 찾아드려요.</p>
+        </div>
+        <a class="store" href="#faq" aria-label="Google Play 출시 예정, 자세히 보기">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.7-.6-1.2V3.5c0-.5.2-1 .6-1.2Z"/><path fill="#FBBC04" d="m17 8.5-3.6 3.5L17 15.5l3.9-2.2c1.1-.6 1.1-2.1 0-2.7L17 8.5Z"/><path fill="#EA4335" d="M13.4 12 3.6 21.7c.4.2.9.2 1.4-.1L17 15.5 13.4 12Z"/><path fill="#4285F4" d="M3.6 2.3c.5-.3 1-.3 1.4-.1L17 8.5 13.4 12 3.6 2.3Z"/></svg>
+          <span><small>곧 만나요</small><strong>Google Play</strong></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 RoutineSlim 팀 · 개인 구독 관리와 고정비 다이어트</span>
+    <nav aria-label="하단 메뉴">
+      <a href="#how">사용법</a>
+      <a href="#cleanup">구독 정리</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var MONTH = 61790;
+  var val = document.getElementById('meter-value');
+  var foot = document.getElementById('meter-foot');
+  var btns = document.querySelectorAll('.seg button');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var current = MONTH, raf;
+  function fmt(n){ return Math.round(n).toLocaleString('ko-KR'); }
+  function animate(to){
+    cancelAnimationFrame(raf);
+    if (reduce){ current = to; val.textContent = fmt(to); return; }
+    var from = current, start = performance.now(), dur = 650;
+    (function step(t){
+      var p = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      current = from + (to - from) * e;
+      val.textContent = fmt(current);
+      if (p < 1) raf = requestAnimationFrame(step);
+    })(start);
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      btns.forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      var year = b.dataset.period === 'year';
+      animate(year ? MONTH * 12 : MONTH);
+      foot.textContent = year
+        ? '같은 구독을 1년 유지하면 이만큼 나가요. 거의 안 쓰는 3개만 정리해도 417,480원을 아껴요.'
+        : '앱 예시 화면 기준 · 넷플릭스, 디즈니+, 유튜브 프리미엄, 스포티파이, iCloud+, 쿠팡 와우';
+    });
+  });
+  var top = document.getElementById('top');
+  function onScroll(){ top.classList.toggle('scrolled', window.scrollY > 8); }
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+})();
+</script>
+
+</body></html>
